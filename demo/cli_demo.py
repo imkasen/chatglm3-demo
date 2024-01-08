@@ -1,8 +1,11 @@
-from modelscope import AutoTokenizer, AutoModel, snapshot_download
-import platform
+"""
+官方命令行对话 Demo
+"""
 import os
+import platform
 from pathlib import Path
 
+from modelscope import AutoModel, AutoTokenizer, snapshot_download
 
 TOKENIZER = None
 MODEL = None
@@ -12,12 +15,17 @@ def init_model():
     """
     初始化 ChatGLM3 模型
     """
-    global TOKENIZER, MODEL
-    
-    MODEL_PATH: str = os.path.join(Path().resolve(), "models")
-    
+    global TOKENIZER, MODEL  # pylint: disable=W0603
+
+    model_path: str = os.path.join(Path().resolve(), "models")
+
     # Download models: https://modelscope.cn/models/ZhipuAI/chatglm3-6b/summary
-    model_dir: str = snapshot_download("ZhipuAI/chatglm3-6b", revision="master", cache_dir=MODEL_PATH, local_files_only=True)
+    model_dir: str = snapshot_download(
+        "ZhipuAI/chatglm3-6b",
+        revision="master",
+        cache_dir=model_path,
+        local_files_only=True,
+    )
     if TOKENIZER is None:
         TOKENIZER = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)
 
@@ -38,34 +46,39 @@ def main():
     """
     if (MODEL is None) or (TOKENIZER is None):
         raise RuntimeError("模型未初始化！")
-    
-    CLEAR_CMD: str = 'cls' if platform.system() == 'Windows' else 'clear'
-    WELCOME_PROMPT: str = "欢迎使用 ChatGLM3-6B 模型，输入内容即可进行对话，clear 清空对话历史，stop 终止程序"
-    
+
+    clear_cmd: str = "cls" if platform.system() == "Windows" else "clear"
+    welcome_prompt: str = "欢迎使用 ChatGLM3-6B 模型，输入内容即可进行对话，clear 清空对话历史，stop 终止程序"
+
     past_key_values, history = None, []
-    print(WELCOME_PROMPT)
-    
+    print(welcome_prompt)
+
     while True:
         query: str = input("\n用户：")
-        
+
         if query.strip() == "stop":
             break
         if query.strip() == "clear":
             past_key_values, history = None, []
-            os.system(CLEAR_CMD)
-            print(WELCOME_PROMPT)
+            os.system(clear_cmd)
+            print(welcome_prompt)
             continue
-        
+
         print("\nChatGLM3-6B：", end="")
         current_length: int = 0
-        
+
         # top_p: 在生成下一个 token 时，从概率分布的前几个最高概率的 token 中进行随机选择的精度阈值。
         # temperature: 控制模型生成文本的随机性和创造性的参数。
         # past_key_values: 一个包含模型过去状态的元组，用于加速生成。
-        for response, history, past_key_values in MODEL.stream_chat(TOKENIZER, query, history=history, top_p=1,
-                                                                    temperature=0.01,
-                                                                    past_key_values=past_key_values,
-                                                                    return_past_key_values=True):
+        for response, history, past_key_values in MODEL.stream_chat(
+            TOKENIZER,
+            query,
+            history=history,
+            top_p=1,
+            temperature=0.01,
+            past_key_values=past_key_values,
+            return_past_key_values=True,
+        ):
             print(response[current_length:], end="", flush=True)
             current_length = len(response)
 

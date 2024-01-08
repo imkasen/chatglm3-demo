@@ -1,8 +1,11 @@
-from modelscope import AutoTokenizer, AutoModel, snapshot_download
-import time
+"""
+基本 Demo
+"""
 import os
+import time
 from pathlib import Path
 
+from modelscope import AutoModel, AutoTokenizer, snapshot_download
 
 TOKENIZER = None
 MODEL = None
@@ -12,12 +15,14 @@ def init_model():
     """
     初始化 ChatGLM3 模型
     """
-    global TOKENIZER, MODEL
-    
-    MODEL_PATH: str = os.path.join(Path().resolve(), "models")
-    
+    global TOKENIZER, MODEL  # pylint: disable=W0603
+
+    model_path: str = os.path.join(Path().resolve(), "models")
+
     # Download models: https://modelscope.cn/models/ZhipuAI/chatglm3-6b/summary
-    model_dir: str = snapshot_download("ZhipuAI/chatglm3-6b", revision="master", cache_dir=MODEL_PATH, local_files_only=True)
+    model_dir: str = snapshot_download(
+        "ZhipuAI/chatglm3-6b", revision="master", cache_dir=model_path, local_files_only=True
+    )
     if TOKENIZER is None:
         TOKENIZER = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)
 
@@ -32,25 +37,23 @@ def init_model():
         MODEL = MODEL.eval()
 
 
-def chat(content: str, history: list):
+def chat(content: str, chat_history: list):
     """
     对话
     """
-    global TOKENIZER, MODEL
-    
     if (MODEL is None) or (TOKENIZER is None):
         raise RuntimeError("模型未初始化！")
-    
+
     t: float = time.perf_counter()
     print(f"用户：{content}")
-    response, _history = MODEL.chat(TOKENIZER, content, history=history)
+    response, _history = MODEL.chat(TOKENIZER, content, history=chat_history)
     print(f"ChatGLM3-6B：{response}")
-    print(f"花费时间：{(time.perf_counter() - t):.2f}s\n")
+    print(f"花费时间：{(time.perf_counter() - t):.2f}秒\n")
     return _history
 
 
 if __name__ == "__main__":
     init_model()
-    
+
     history = chat("你好！", [])
     history = chat("圣诞节是什么时候？", history)
