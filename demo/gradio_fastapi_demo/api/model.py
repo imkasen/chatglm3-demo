@@ -3,6 +3,7 @@ ChatGLM3-6B Model
 """
 
 import os
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,16 @@ class ChatGLM3:
     """
     ChatGLM3-6B 对话模型
     """
+
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if not cls._instance:
+                    cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(self, is_quantize: bool = False, is_cpu: bool = False) -> None:
         self.history: list[dict[str, Any]] = []
@@ -47,6 +58,7 @@ class ChatGLM3:
         :param temperature: temperature 参数
         :return: Gradio 格式的新聊天记录
         """
+        # TODO: store different histories in db based on different web user requests
         if not self.history:  # ChatGLM3 格式的聊天记录
             for idx, (user_msg, model_msg) in enumerate(chat_history):
                 if idx == len(chat_history) - 1 and not model_msg:
