@@ -26,6 +26,7 @@ class ChatGLM3:
         return cls._instance
 
     def __init__(self, is_quantize: bool = False, is_cpu: bool = False) -> None:
+        # TODO: store different histories in db based on different web user requests
         self.history: list[dict[str, Any]] = []
 
         model_path: str = os.path.join(Path().resolve(), "models")
@@ -49,16 +50,13 @@ class ChatGLM3:
             self.model = AutoModel.from_pretrained(model_dir, trust_remote_code=True).cuda()
         self.model.eval()
 
-    def chat_reply(self, chat_history: list[Any], top_p: float, temperature: float) -> list[Any]:
+    def format_chat_history(self, chat_history: list[Any]) -> str:
         """
-        一次性返回模型的回复
+        将 Gradio 聊天记录格式转换为 ChatGLM 聊天记录格式
 
         :param chat_history: Gradio 格式的聊天记录
-        :param top_p: top p 参数
-        :param temperature: temperature 参数
-        :return: Gradio 格式的新聊天记录
+        :return: 当前最新的用户提问内容
         """
-        # TODO: store different histories in db based on different web user requests
         if not self.history:  # ChatGLM3 格式的聊天记录
             for idx, (user_msg, model_msg) in enumerate(chat_history):
                 if idx == len(chat_history) - 1 and not model_msg:
@@ -70,6 +68,18 @@ class ChatGLM3:
                     self.history.append({"role": "assistant", "content": model_msg})
         else:
             user_question = chat_history[-1][0]
+        return user_question
+
+    def chat_reply(self, chat_history: list[Any], top_p: float, temperature: float):
+        """
+        完整返回模型的单条回复
+
+        :param chat_history: Gradio 格式的聊天记录
+        :param top_p: top p 参数
+        :param temperature: temperature 参数
+        :return: LLM 单条回复
+        """
+        user_question: str = self.format_chat_history(chat_history)
 
         reply, self.history = self.model.chat(
             self.tokenizer,
@@ -78,9 +88,32 @@ class ChatGLM3:
             top_p=top_p,
             temperature=temperature,
         )
+        return reply
 
-        chat_history[-1][1] = reply
-        return chat_history
+    def stream_chat_reply(self, chat_history: list[Any], top_p: float, temperature: float):
+        """
+        以流的形式返回模型单条回复
+
+        :param chat_history: Gradio 格式的聊天记录
+        :param top_p: top p 参数
+        :param temperature: temperature 参数
+        :return: LLM 单条回复
+        """
+        user_question: str = self.format_chat_history(chat_history)
+
+        past_key_values = None
+        for reply, self.history, past_key_values in self.model.stream_chat(
+            self.tokenizer,
+            user_question,
+            history=self.history,
+            top_p=top_p,
+            temperature=temperature,
+            past_key_values=past_key_values,
+            return_past_key_values=True,
+        ):
+            # list 不可迭代，在 FastAPI 的 StreamingResponse 中会报错，因此只返回 LLM 回复字符串
+            # yield reply + "\n"  # requests: response.iter_lines
+            yield reply  # requests: response.iter_content
 
     def clear_history(self) -> bool:
         """

@@ -4,6 +4,7 @@ FastAPI 路由文件
 from typing import Any
 
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from .model import chat_model
@@ -22,12 +23,28 @@ class UploadContent(BaseModel):
 
 
 # Routers
-@api.put(path="/chat")
+@api.post(path="/chat")
 async def chat_reply(content: UploadContent):
     """
-    获取 ChatGLM3 一次性回复
+    获取 ChatGLM3 单条完整回复
     """
     return chat_model.chat_reply(content.chat_history, content.top_p, content.temperature)
+
+
+@api.post(path="/stream_chat")
+async def stream_chat_reply(content: UploadContent):
+    """
+    获取 ChatGLM3 单条流式回复
+    """
+    reply = chat_model.stream_chat_reply(content.chat_history, content.top_p, content.temperature)
+    return StreamingResponse(
+        content=reply,
+        headers={
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @api.delete(path="/clear_history")

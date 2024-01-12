@@ -3,7 +3,7 @@ UI 界面
 """
 import gradio as gr
 
-from .ui_functions import clear_messages, llm_reply, query_user_input
+from .ui_functions import clear_messages, llm_reply, llm_stream_reply, query_user_input
 
 # Gradio UI
 with gr.Blocks(title="ChatGLM3-6B Gradio Simple Demo") as demo:
@@ -55,7 +55,8 @@ with gr.Blocks(title="ChatGLM3-6B Gradio Simple Demo") as demo:
         outputs=[user_input, chatbot],
         queue=False,
     ).then(
-        fn=llm_reply,
+        # fn=llm_reply,
+        fn=llm_stream_reply,
         inputs=[url_text, chatbot, top_p_input, temperature_input],
         outputs=chatbot,
     )

@@ -5,7 +5,7 @@ from typing import Any, LiteralString
 
 import gradio as gr
 
-from .api_requests import clear_history, request_chat_reply
+from .api_requests import clear_history, request_chat_reply, request_stream_chat_reply
 
 
 def clear_messages(url: str):
@@ -81,12 +81,26 @@ def query_user_input(input_text: str, chat_history: list[Any]) -> tuple[LiteralS
 
 def llm_reply(url: str, chat_history: list[Any], top_p: float, temperature: float):
     """
-    交由 LLM 来处理聊天对话输入并产生结果
+    交由 LLM 来处理聊天对话输入并将单条回复拼接回 Gradio 聊天记录中。
 
     :param chat_history: Gradio 中的聊天历史记录
-    :param max_length: LLM 上下文长度
+    :param top_p: top p 参数
+    :param temperature: temperature 参数
+    :return: Gradio 格式的新的聊天历史记录
+    """
+    chat_history[-1][1] = request_chat_reply(url, chat_history, top_p, temperature)
+    return chat_history
+
+
+def llm_stream_reply(url: str, chat_history: list[Any], top_p: float, temperature: float):
+    """
+    交由 LLM 来处理聊天对话输入并将单条回复拼接回 Gradio 聊天记录中。
+
+    :param chat_history: Gradio 中的聊天历史记录
     :param top_p: top p 参数
     :param temperature: temperature 参数
     :yield: 新的聊天历史记录
     """
-    return request_chat_reply(url, chat_history, top_p, temperature)
+    for reply_chunk in request_stream_chat_reply(url, chat_history, top_p, temperature):
+        chat_history[-1][1] = reply_chunk
+        yield chat_history
