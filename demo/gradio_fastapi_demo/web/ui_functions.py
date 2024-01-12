@@ -3,6 +3,8 @@ Gradio 组件所需的方法
 """
 from typing import Any, LiteralString
 
+import gradio as gr
+
 from .api_requests import clear_history, request_chat_reply
 
 
@@ -10,7 +12,8 @@ def clear_messages(url: str):
     """
     清除 ChatGLM3 历史记录
     """
-    clear_history(url)
+    if clear_history(url):
+        gr.Info("清除聊天历史完成！")
 
 
 def parse_text(text: str) -> str:

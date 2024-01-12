@@ -23,4 +23,5 @@ def clear_history(url: str):
     """
     清除 ChatGLM3 聊天记录
     """
-    requests.delete(url=f"{url}/clear_history", timeout=5)
+    response = requests.delete(url=f"{url}/clear_history", timeout=5)
+    return response.json()

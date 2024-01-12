@@ -31,8 +31,8 @@ async def chat_reply(content: UploadContent):
 
 
 @api.delete(path="/clear_history")
-async def clear_history():
+async def clear_history() -> bool:
     """
     清除 ChatGLM3 的聊天历史
     """
-    chat_model.clear_history()
+    return chat_model.clear_history()

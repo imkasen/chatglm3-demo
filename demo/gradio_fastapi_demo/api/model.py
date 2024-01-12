@@ -82,11 +82,12 @@ class ChatGLM3:
         chat_history[-1][1] = reply
         return chat_history
 
-    def clear_history(self):
+    def clear_history(self) -> bool:
         """
         清除历史记录
         """
         self.history = []
+        return True
 
 
 # 初始化实例
