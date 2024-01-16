@@ -44,6 +44,7 @@ async def stream_chat_reply(content: UploadContent):
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
         },
+        media_type="text/event-stream",
     )
 
 

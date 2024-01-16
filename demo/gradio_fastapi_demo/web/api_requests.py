@@ -28,8 +28,9 @@ def request_stream_chat_reply(url: str, chat_history: list[Any], top_p: float, t
         "top_p": top_p,
         "temperature": temperature,
     }
-    with requests.post(url=f"{url}/stream_chat", timeout=60, json=data, stream=True) as response:
-        response.encoding = response.apparent_encoding  # 避免中文内容出现乱码
+    headers: dict[str, str] = {"Accept": "text/event-stream"}
+    with requests.post(url=f"{url}/stream_chat", timeout=60, json=data, headers=headers, stream=True) as response:
+        response.encoding = "utf-8"  # 避免中文内容出现乱码
         # for chunk in response.iter_lines(decode_unicode=True):  # 不可重入
         for chunk in response.iter_content(chunk_size=1024, decode_unicode=True):
             yield chunk
