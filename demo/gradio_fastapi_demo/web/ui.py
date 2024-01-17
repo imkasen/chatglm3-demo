@@ -20,7 +20,7 @@ with gr.Blocks(title="ChatGLM3-6B Gradio Simple Demo") as demo:
 
     with gr.Row():
         with gr.Column(scale=4):
-            user_input = gr.Textbox(placeholder="Input...", lines=5, container=False)
+            user_input = gr.Textbox(placeholder="Input...", container=False)
             submit_btn = gr.Button(value="Submit", variant="primary")
         with gr.Column(scale=1):
             empty_btn = gr.ClearButton(value="Clear History", size="sm")
@@ -50,6 +50,18 @@ with gr.Blocks(title="ChatGLM3-6B Gradio Simple Demo") as demo:
     )
 
     submit_btn.click(  # pylint: disable=E1101
+        fn=query_user_input,
+        inputs=[user_input, chatbot],
+        outputs=[user_input, chatbot],
+        queue=False,
+    ).then(
+        # fn=llm_reply,
+        fn=llm_stream_reply,
+        inputs=[url_text, chatbot, top_p_input, temperature_input],
+        outputs=chatbot,
+    )
+
+    user_input.submit(  # pylint: disable=E1101
         fn=query_user_input,
         inputs=[user_input, chatbot],
         outputs=[user_input, chatbot],
