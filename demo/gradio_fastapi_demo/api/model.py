@@ -15,16 +15,6 @@ class ChatGLM3:
     ChatGLM3-6B 对话模型
     """
 
-    _instance = None
-    _lock = threading.Lock()
-
-    def __new__(cls):
-        if cls._instance is None:
-            with cls._lock:
-                if not cls._instance:
-                    cls._instance = super().__new__(cls)
-        return cls._instance
-
     def __init__(self, is_quantize: bool = False, is_cpu: bool = False) -> None:
         # TODO: store different histories in db based on different web user requests
         self.history: list[dict[str, Any]] = []
@@ -123,5 +113,26 @@ class ChatGLM3:
         return True
 
 
-# 初始化实例
-chat_model = ChatGLM3()
+class ChatGLM3Factory:
+    """
+    ChatGLM3 单例模式工厂类
+    """
+
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if not cls._instance:
+                    cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        self.model_instance = ChatGLM3()
+
+    def get_model(self):
+        """
+        获得 ChatGLM3 模型
+        """
+        return self.model_instance
