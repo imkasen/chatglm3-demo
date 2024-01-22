@@ -1,8 +1,6 @@
 """
 Gradio UI Demo
 """
-import os
-from pathlib import Path
 from typing import Any, LiteralString
 
 import gradio as gr
@@ -19,15 +17,8 @@ def init_model():
     """
     global TOKENIZER, MODEL  # pylint: disable=W0603
 
-    model_path: str = os.path.join(Path().resolve(), "models")
+    model_dir: str = snapshot_download("ZhipuAI/chatglm3-6b", revision="master", local_files_only=True)
 
-    # Download models: https://modelscope.cn/models/ZhipuAI/chatglm3-6b/summary
-    model_dir: str = snapshot_download(
-        "ZhipuAI/chatglm3-6b",
-        revision="master",
-        cache_dir=model_path,
-        local_files_only=True,
-    )
     if TOKENIZER is None:
         TOKENIZER = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)
 

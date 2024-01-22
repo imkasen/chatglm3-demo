@@ -1,9 +1,7 @@
 """
 基本 Demo
 """
-import os
 import time
-from pathlib import Path
 
 from modelscope import AutoModel, AutoTokenizer, snapshot_download
 
@@ -17,12 +15,14 @@ def init_model():
     """
     global TOKENIZER, MODEL  # pylint: disable=W0603
 
-    model_path: str = os.path.join(Path().resolve(), "models")
-
     # Download models: https://modelscope.cn/models/ZhipuAI/chatglm3-6b/summary
-    model_dir: str = snapshot_download(
-        "ZhipuAI/chatglm3-6b", revision="master", cache_dir=model_path, local_files_only=True
-    )
+    # model_dir: str = snapshot_download(
+    #     "ZhipuAI/chatglm3-6b", revision="master", cache_dir=model_path, local_files_only=True
+    # )
+
+    # Model path on Windows: C:\Users\<UserName>\.cache\modelscope\hub
+    model_dir: str = snapshot_download("ZhipuAI/chatglm3-6b", revision="master", local_files_only=True)
+
     if TOKENIZER is None:
         TOKENIZER = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)
 

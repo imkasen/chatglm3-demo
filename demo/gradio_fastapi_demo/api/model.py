@@ -2,9 +2,7 @@
 ChatGLM3-6B Model
 """
 
-import os
 import threading
-from pathlib import Path
 from typing import Any
 
 from modelscope import AutoModel, AutoTokenizer, snapshot_download
@@ -19,14 +17,7 @@ class ChatGLM3:
         # TODO: store different histories in db based on different web user requests
         self.history: list[dict[str, Any]] = []
 
-        model_path: str = os.path.join(Path().resolve(), "models")
-        # Download models: https://modelscope.cn/models/ZhipuAI/chatglm3-6b/summary
-        model_dir: str = snapshot_download(
-            "ZhipuAI/chatglm3-6b",
-            revision="master",
-            cache_dir=model_path,
-            local_files_only=True,
-        )
+        model_dir: str = snapshot_download("ZhipuAI/chatglm3-6b", revision="master", local_files_only=True)
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)
         if is_quantize:
