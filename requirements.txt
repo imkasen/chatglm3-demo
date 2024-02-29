@@ -1,15 +1,20 @@
-accelerate
-cpm_kernels
-modelscope
-protobuf
-sentencepiece
-tokenizers
-transformers
+# Basics
 gradio
 fastapi
 uvicorn
 requests
 
+# LLMs
+modelscope
+tokenizers
+transformers
+accelerate
+cpm_kernels
+protobuf
+sentencepiece
+tiktoken
+
+# PyTorch
 --extra-index-url https://download.pytorch.org/whl/cu118
 torch
 torchvision
