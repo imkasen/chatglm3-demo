@@ -3,6 +3,7 @@ gradio
 fastapi
 uvicorn
 requests
+mdtex2html
 
 # LLMs
 modelscope
